@@ -8,18 +8,25 @@ const config	=	require('./config/database');
 
 // connect to database
 mongoose.connect(config.database);
+var promise = mongoose.createConnection(config.database, {
+  useMongoClient: true,
+  /* other options */
+});
+
+promise.then(function(db) {
+   // Use `db`, for instance `db.model()`
+   console.log('connected to database '+ config.database);
+});
 
 // On connection success
-mongoose.connection.on('connected', ()=>{
-	console.log('connected to database '+ config.database);
-})
+// mongoose.connection.on('connected', ()=>{
+	// console.log('connected to database '+ config.database);
+// })
 
 // On connection error
 mongoose.connection.on('error', (err)=>{
 	console.log('Database connection error: '+ err);
 })
-
-
 
 const app = express();
 
@@ -36,6 +43,12 @@ app.use(express.static(path.join(__dirname,'public')))
 
 // body paser middleware
 app.use(bodyParser.json());
+
+// passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+require('./config/passport')(passport);
 
 // user middleware
 app.use('/users', users );

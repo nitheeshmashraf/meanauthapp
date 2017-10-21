@@ -2,12 +2,14 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
+const config = require('../config/database');
 
-const user = require('../models/user');
+
+const User = require('../models/user');
 
 // routers
 router.post('/register',(req,res,next)=>{
-	Let newUser = new User({
+	let newUser = new User({
 		name: req.body.Username,
 		email: req.body.email,
 		username: req.body.username,
@@ -17,23 +19,57 @@ router.post('/register',(req,res,next)=>{
 	User.addUser(newUser, (err, user)=>{
 		if(err){
 			res.json({success:false, msg:'Failed to register user'+newUser.name});
+		}else{
+			res.json({success:true, msg:'User Registered'});
 		}
 	})
 
 
-	res.send("register");
+	// res.send("register");
 });
 
 // auth
 router.post('/authenticate',(req,res,next)=>{
-	res.send("authenticate");
-});
+	const username = req.body.username;
+  const password = req.body.password;
+
+  User.getUserByUsername(username, (err, user) => {
+    if(err) throw err;
+    if(!user){
+      return res.json({success: false, msg: 'User not found'});
+    }
+    User.comparePassword(password, user.password, (err, isMatch) => {
+
+      if(err) throw err;
+      if(isMatch){
+        
+        const token = jwt.sign(user.toObject(), config.secret, {
+          expiresIn: 604800 // 1 week
+        });
+
+        res.json({
+          success: true,
+          token: 'JWT '+token,
+          user: {
+            id: user._id,
+            name: user.name,
+            username: user.username,
+            email: user.email
+          }
+        });
+      } else {
+        return res.json({success: false, msg: 'Wrong password'});
+      }
+    });
+  });
+  });
 
 
-// profile
-router.get('/profile',(req,res,next)=>{
-	res.send("profile");
+// Profile
+router.get('/profile', passport.authenticate('jwt', {session:false}), (req, res, next) => {
+  res.json({user: req.user});
 });
+
 
 
 module.exports = router;
