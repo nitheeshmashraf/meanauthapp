@@ -26,5 +26,8 @@
   "bugs": {
     "url": "https://github.com/nitheeshmashraf/meanauthapp/issues"
   },
-  "homepage": "https://github.com/nitheeshmashraf/meanauthapp#readme"
+  "homepage": "https://github.com/nitheeshmashraf/meanauthapp#readme",
+  "devDependencies": {
+    "@angular/cli": "^1.4.9"
+  }
 }
